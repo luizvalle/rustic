@@ -26,26 +26,37 @@ namespace {
             IRBuilder<> builder(firstInstruction);
 
             // Print the function name
-            string functionName = F.getName().str();
+            Value *functionName = builder.CreateGlobalStringPtr(F.getName().str() + ",");
+            builder.CreateCall(printfFunction, {functionName});
 
-            // Collect arguments
-            string args;
-
+            // Print the arguments
             for (auto &Arg : F.args()) {
-                string argStr;
-                raw_string_ostream argStream(argStr);
-                Arg.print(argStream);
-                argStream.flush();
-                args += "," + argStr;
+                string formatSpecifier;
+                if (Arg.getType()->isIntegerTy()) {
+                    formatSpecifier = "%d";
+                } else if (Arg.getType()->isFloatTy()) {
+                    formatSpecifier = "%f";
+                } else if (Arg.getType()->isDoubleTy()) {
+                    formatSpecifier = "%lf";
+                } else {
+                    formatSpecifier = "UNKNOWN_TYPE";
+                }
+                string formatString = Arg.getName().str() + ": " + formatSpecifier + ',';
+                Value *formatConstant = builder.CreateGlobalStringPtr(formatString);
+
+                Value *argValue = &Arg;
+                builder.CreateCall(printfFunction, {formatConstant, argValue});
+                // string argStr;
+                // raw_string_ostream argStream(argStr);
+                // Arg.getType()->print(argStream);
+                // argStream.flush();
+                // args += "," + argStr;
             }
 
             // Value *printFormat = builder.CreateGlobalStringPtr("%s%s\n");
             // Value *functionName = builder.CreateGlobalStringPtr(F.getName().str());
-            // builder.CreateCall(printfFunction, {functionName});
-
-            // // Insert a printf call to print the output
-            // formatString = "Output: %d\\n";
-            // formatConstant = builder.CreateGlobalStringPtr(formatString);
+            // Value *functionArgs = builder.CreateGlobalStringPtr(args);
+            // builder.CreateCall(printfFunction, {printFormat, functionName, functionArgs});
 
             // if (!F.getReturnType()->isVoidTy()) {
             //     // Create a temporary variable to store the result
