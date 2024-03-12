@@ -49,7 +49,7 @@ namespace {
                     builder.CreateCall(printfFunction, {builder.CreateGlobalStringPtr("unknown_type,")});
                     continue;
                 }
-                string formatString = type + ":" + formatSpecifier + ',';
+                string formatString = "input:" + type + ":" + formatSpecifier + ',';
                 Value *formatConstant = builder.CreateGlobalStringPtr(formatString);
 
                 Value *argValue = &Arg;
