@@ -26,37 +26,35 @@ namespace {
             IRBuilder<> builder(firstInstruction);
 
             // Print the function name
-            Value *functionName = builder.CreateGlobalStringPtr(F.getName().str() + ",");
+            Value *functionName = builder.CreateGlobalStringPtr("name:" + F.getName().str() + ",");
             builder.CreateCall(printfFunction, {functionName});
 
             // Print the arguments
             for (auto &Arg : F.args()) {
                 string formatSpecifier;
+                string type;
                 if (Arg.getType()->isIntegerTy()) {
+                    type = "integer";
                     formatSpecifier = "%d";
                 } else if (Arg.getType()->isFloatTy()) {
+                    type = "float";
                     formatSpecifier = "%f";
                 } else if (Arg.getType()->isDoubleTy()) {
+                    type = "double";
                     formatSpecifier = "%lf";
+                } else if (Arg.getType()->isPointerTy()) {
+                    type = "pointer";
+                    formatSpecifier = "%p";
                 } else {
-                    formatSpecifier = "UNKNOWN_TYPE";
+                    builder.CreateCall(printfFunction, {builder.CreateGlobalStringPtr("unknown_type,")});
+                    continue;
                 }
-                string formatString = Arg.getName().str() + ": " + formatSpecifier + ',';
+                string formatString = type + ":" + formatSpecifier + ',';
                 Value *formatConstant = builder.CreateGlobalStringPtr(formatString);
 
                 Value *argValue = &Arg;
                 builder.CreateCall(printfFunction, {formatConstant, argValue});
-                // string argStr;
-                // raw_string_ostream argStream(argStr);
-                // Arg.getType()->print(argStream);
-                // argStream.flush();
-                // args += "," + argStr;
             }
-
-            // Value *printFormat = builder.CreateGlobalStringPtr("%s%s\n");
-            // Value *functionName = builder.CreateGlobalStringPtr(F.getName().str());
-            // Value *functionArgs = builder.CreateGlobalStringPtr(args);
-            // builder.CreateCall(printfFunction, {printFormat, functionName, functionArgs});
 
             // if (!F.getReturnType()->isVoidTy()) {
             //     // Create a temporary variable to store the result
@@ -72,6 +70,8 @@ namespace {
             //     // Insert the printf call to print that the function is void
             //     builder.CreateCall(printfFunc, {formatConstant});
             // }
+
+            builder.CreateCall(printfFunction, {builder.CreateGlobalStringPtr("\n")});
 
             return PreservedAnalyses::none(); // Function has been modified
         }
