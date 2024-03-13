@@ -17,7 +17,9 @@ namespace {
     }
 
     void printArguments(const Function& F, IRBuilder<>& builder, FunctionCallee& printfFunction) {
+        unsigned int numArgs = 0;
         for (auto& Arg : F.args()) {
+            numArgs++;
             string formatSpecifier, type;
 
             if (Arg.getType()->isIntegerTy()) {
@@ -44,9 +46,9 @@ namespace {
             builder.CreateCall(printfFunction, {formatConstant, const_cast<Value*>(argValue)});
         }
 
-    }
-
-    void printReturn(const Function& F, IRBuilder<>& builder, FunctionCallee& printfFunction) {
+        if (numArgs == 0) {
+            builder.CreateCall(printfFunction, {builder.CreateGlobalStringPtr("input:void,")});
+        }
 
     }
 
@@ -67,13 +69,18 @@ namespace {
                     continue;
                 }
 
+                IRBuilder<> returnBuilder(returnInst);
+
                 Value *returnValue = returnInst->getReturnValue();
                 if (!returnValue) {
+                    // Returns void
+                    printName(F, returnBuilder, printfFunction);
+                    printArguments(F, returnBuilder, printfFunction);
+                    returnBuilder.CreateCall(printfFunction, {returnBuilder.CreateGlobalStringPtr("output:void,\n")});
                     continue;
                 }
 
                 string formatSpecifier, type;
-                IRBuilder<> returnBuilder(returnInst);
 
                 if (returnValue->getType()->isIntegerTy()) {
                     type = "integer";
@@ -87,11 +94,6 @@ namespace {
                 } else if (returnValue->getType()->isPointerTy()) {
                     type = "pointer";
                     formatSpecifier = "%p";
-                } else if (returnValue->getType()->isVoidTy()) {
-                    printName(F, returnBuilder, printfFunction);
-                    printArguments(F, returnBuilder, printfFunction);
-                    returnBuilder.CreateCall(printfFunction, {returnBuilder.CreateGlobalStringPtr("output:void,\n")});
-                    continue;
                 } else {
                     printName(F, returnBuilder, printfFunction);
                     printArguments(F, returnBuilder, printfFunction);
