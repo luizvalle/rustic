@@ -13,7 +13,7 @@ using namespace std;
 namespace {
     struct PrintFunctionIOPass : PassInfoMixin<PrintFunctionIOPass> {
         PreservedAnalyses run (Function &F, FunctionAnalysisManager &) {
-            LLVMContext &context = F.getContext();
+            LLVMContext& context = F.getContext();
             Module *module = F.getParent();
 
             // Create the declaration for the printf function
