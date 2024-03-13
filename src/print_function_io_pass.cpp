@@ -11,8 +11,47 @@ using namespace llvm;
 using namespace std;
 
 namespace {
+    void printName(const Function& F, IRBuilder<>& builder, FunctionCallee& printfFunction) {
+        Value *functionName = builder.CreateGlobalStringPtr("name:" + F.getName().str() + ",");
+        builder.CreateCall(printfFunction, {functionName});
+    }
+
+    void printArguments(const Function& F, IRBuilder<>& builder, FunctionCallee& printfFunction) {
+        for (auto& Arg : F.args()) {
+            string formatSpecifier, type;
+
+            if (Arg.getType()->isIntegerTy()) {
+                type = "integer";
+                formatSpecifier = "%d";
+            } else if (Arg.getType()->isFloatTy()) {
+                type = "float";
+                formatSpecifier = "%f";
+            } else if (Arg.getType()->isDoubleTy()) {
+                type = "double";
+                formatSpecifier = "%lf";
+            } else if (Arg.getType()->isPointerTy()) {
+                type = "pointer";
+                formatSpecifier = "%p";
+            } else {
+                builder.CreateCall(printfFunction, {builder.CreateGlobalStringPtr("input:unknown_type,")});
+                continue;
+            }
+
+            string formatString = "input:" + type + ":" + formatSpecifier + ',';
+            Value *formatConstant = builder.CreateGlobalStringPtr(formatString);
+
+            const Value *argValue = &Arg;
+            builder.CreateCall(printfFunction, {formatConstant, const_cast<Value*>(argValue)});
+        }
+
+    }
+
+    void printReturn(const Function& F, IRBuilder<>& builder, FunctionCallee& printfFunction) {
+
+    }
+
     struct PrintFunctionIOPass : PassInfoMixin<PrintFunctionIOPass> {
-        PreservedAnalyses run (Function &F, FunctionAnalysisManager &) {
+        PreservedAnalyses run (Function& F, FunctionAnalysisManager&) {
             LLVMContext& context = F.getContext();
             Module *module = F.getParent();
 
@@ -20,51 +59,6 @@ namespace {
             FunctionType *printfType = FunctionType::get(
                     Type::getInt32Ty(context), {Type::getInt8PtrTy(context)}, true);
             FunctionCallee printfFunction = module->getOrInsertFunction("printf", printfType);
-
-            // Create builder at the beginning of the function
-            Instruction *firstInstruction = &F.front().front();
-            IRBuilder<> builder(firstInstruction);
-
-            // Print the function name
-            Value *functionName = builder.CreateGlobalStringPtr("name:" + F.getName().str() + ",");
-            builder.CreateCall(printfFunction, {functionName});
-
-            // Print the arguments
-            for (auto &Arg : F.args()) {
-                string formatSpecifier, type;
-
-                if (Arg.getType()->isIntegerTy()) {
-                    type = "integer";
-                    formatSpecifier = "%d";
-                } else if (Arg.getType()->isFloatTy()) {
-                    type = "float";
-                    formatSpecifier = "%f";
-                } else if (Arg.getType()->isDoubleTy()) {
-                    type = "double";
-                    formatSpecifier = "%lf";
-                } else if (Arg.getType()->isPointerTy()) {
-                    type = "pointer";
-                    formatSpecifier = "%p";
-                } else {
-                    builder.CreateCall(printfFunction, {builder.CreateGlobalStringPtr("input:unknown_type,")});
-                    continue;
-                }
-
-                string formatString = "input:" + type + ":" + formatSpecifier + ',';
-                Value *formatConstant = builder.CreateGlobalStringPtr(formatString);
-
-                Value *argValue = &Arg;
-                builder.CreateCall(printfFunction, {formatConstant, argValue});
-            }
-
-            if (F.getReturnType()->isVoidTy()) {
-                // If the function returns void, we are done
-                Value *voidReturnConstant = builder.CreateGlobalStringPtr("output:void\n");
-                builder.CreateCall(printfFunction, {voidReturnConstant});
-                return PreservedAnalyses::none(); // Function has been modified
-            }
-
-            // Function does not return void
 
             // Print the output by inserting a print statement before every the return statement
             for (auto& BB : F) {
@@ -93,13 +87,23 @@ namespace {
                 } else if (returnValue->getType()->isPointerTy()) {
                     type = "pointer";
                     formatSpecifier = "%p";
+                } else if (returnValue->getType()->isVoidTy()) {
+                    printName(F, returnBuilder, printfFunction);
+                    printArguments(F, returnBuilder, printfFunction);
+                    returnBuilder.CreateCall(printfFunction, {returnBuilder.CreateGlobalStringPtr("output:void,\n")});
+                    continue;
                 } else {
-                    returnBuilder.CreateCall(printfFunction, {builder.CreateGlobalStringPtr("output:unknown_type,\n")});
+                    printName(F, returnBuilder, printfFunction);
+                    printArguments(F, returnBuilder, printfFunction);
+                    returnBuilder.CreateCall(printfFunction, {returnBuilder.CreateGlobalStringPtr("output:unknown_type,\n")});
                     continue;
                 }
 
+                printName(F, returnBuilder, printfFunction);
+                printArguments(F, returnBuilder, printfFunction);
+
                 string formatString = "output:" + type + ":" + formatSpecifier + ",\n";
-                Value *formatConstant = builder.CreateGlobalStringPtr(formatString);
+                Value *formatConstant = returnBuilder.CreateGlobalStringPtr(formatString);
 
                 returnBuilder.CreateCall(printfFunction, {formatConstant, returnValue});
             }
