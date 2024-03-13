@@ -31,8 +31,8 @@ namespace {
 
             // Print the arguments
             for (auto &Arg : F.args()) {
-                string formatSpecifier;
-                string type;
+                string formatSpecifier, type;
+
                 if (Arg.getType()->isIntegerTy()) {
                     type = "integer";
                     formatSpecifier = "%d";
@@ -46,9 +46,10 @@ namespace {
                     type = "pointer";
                     formatSpecifier = "%p";
                 } else {
-                    builder.CreateCall(printfFunction, {builder.CreateGlobalStringPtr("unknown_type,")});
+                    builder.CreateCall(printfFunction, {builder.CreateGlobalStringPtr("input:unknown_type,")});
                     continue;
                 }
+
                 string formatString = "input:" + type + ":" + formatSpecifier + ',';
                 Value *formatConstant = builder.CreateGlobalStringPtr(formatString);
 
@@ -56,22 +57,52 @@ namespace {
                 builder.CreateCall(printfFunction, {formatConstant, argValue});
             }
 
-            // if (!F.getReturnType()->isVoidTy()) {
-            //     // Create a temporary variable to store the result
-            //     AllocaInst *resultVar = builder.CreateAlloca(
-            //             F.getReturnType(), nullptr, "resultVar");
+            if (F.getReturnType()->isVoidTy()) {
+                // If the function returns void, we are done
+                Value *voidReturnConstant = builder.CreateGlobalStringPtr("output:void\n");
+                builder.CreateCall(printfFunction, {voidReturnConstant});
+                return PreservedAnalyses::none(); // Function has been modified
+            }
 
-            //     // Insert the printf call to print the output
-            //     builder.CreateCall(printfFunc, {formatConstant, builder.CreateLoad(resultVar)});
+            // Function does not return void
 
-            //     // Insert a return instruction if the original function is non-void
-            //     builder.CreateRet(builder.CreateLoad(resultVar));
-            // } else {
-            //     // Insert the printf call to print that the function is void
-            //     builder.CreateCall(printfFunc, {formatConstant});
-            // }
+            // Print the output by inserting a print statement before every the return statement
+            for (auto& BB : F) {
+                ReturnInst *returnInst = dyn_cast<ReturnInst>(BB.getTerminator());
+                if (!returnInst) {
+                    continue;
+                }
 
-            builder.CreateCall(printfFunction, {builder.CreateGlobalStringPtr("\n")});
+                Value *returnValue = returnInst->getReturnValue();
+                if (!returnValue) {
+                    continue;
+                }
+
+                string formatSpecifier, type;
+                IRBuilder<> returnBuilder(returnInst);
+
+                if (returnValue->getType()->isIntegerTy()) {
+                    type = "integer";
+                    formatSpecifier = "%d";
+                } else if (returnValue->getType()->isFloatTy()) {
+                    type = "float";
+                    formatSpecifier = "%f";
+                } else if (returnValue->getType()->isDoubleTy()) {
+                    type = "double";
+                    formatSpecifier = "%lf";
+                } else if (returnValue->getType()->isPointerTy()) {
+                    type = "pointer";
+                    formatSpecifier = "%p";
+                } else {
+                    returnBuilder.CreateCall(printfFunction, {builder.CreateGlobalStringPtr("output:unknown_type,\n")});
+                    continue;
+                }
+
+                string formatString = "output:" + type + ":" + formatSpecifier + ",\n";
+                Value *formatConstant = builder.CreateGlobalStringPtr(formatString);
+
+                returnBuilder.CreateCall(printfFunction, {formatConstant, returnValue});
+            }
 
             return PreservedAnalyses::none(); // Function has been modified
         }
