@@ -1,8 +1,8 @@
 /* 
  * record_function_io.cpp
  *
- * An LLVM function pass that instruments the code to print the input and
- * outputs of a function's invocation at runtime.
+ * An LLVM function pass that instruments the code to print the inputs and
+ * output of a function's invocation at runtime.
  *
  * The records are printed to a file specified as a
  * command line argument.
@@ -15,11 +15,19 @@
 #include "llvm/Passes/PassBuilder.h"
 #include "llvm/Passes/PassPlugin.h"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm/Support/CommandLine.h"
 
 using namespace llvm;
 using namespace std;
 
 namespace {
+
+    // Command-line argument
+    static cl::opt<string> outputFile(
+            "record-output-file",
+            cl::desc("Path to the file where records will be written to"),
+            cl::Required);
+
     void printName(
             const Function& F, IRBuilder<>& builder,
             FunctionCallee& fprintfFunction, Value *fd) {
@@ -124,7 +132,7 @@ namespace {
                 Value *fd = returnBuilder.CreateCall(
                         fopenFunction,
                         {
-                            returnBuilder.CreateGlobalStringPtr("test.txt"),
+                            returnBuilder.CreateGlobalStringPtr(outputFile),
                             returnBuilder.CreateGlobalStringPtr("a")
                         });
 

@@ -10,7 +10,11 @@ factorial: factorial_opt.ll
 	$(CC) $^ -o $@
 
 factorial_opt.ll: librecordfunctionio.so factorial.ll
-	opt -load-pass-plugin ./librecordfunctionio.so -passes=record-function-io factorial.ll -S -o $@
+	opt -load ./librecordfunctionio.so \
+		-load-pass-plugin ./librecordfunctionio.so \
+		-passes="record-function-io" \
+		-record-output-file="records.txt" \
+		factorial.ll -S -o $@ \
 
 librecordfunctionio.so: record_function_io.cpp
 	$(CXX) -shared -fPIC $(CXXFLAGS) $(LDFLAGS) $^ -o $@
@@ -20,4 +24,4 @@ factorial.ll: factorial.c
 
 .PHONY: clean
 clean:
-	rm -rf *.o librecordfunctionio.so factorial.ll factorial_opt.ll factorial
+	rm -rf *.o librecordfunctionio.so factorial.ll factorial_opt.ll factorial records.txt
