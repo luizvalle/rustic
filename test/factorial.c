@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 void foo() {
 }
@@ -16,7 +17,9 @@ int factorial(int n)
 
 int main(int argc, char **argv)
 {
-    int n = 10;
+    int n;
+
+    scanf("%d", &n);
 
     printf("%d! = %d\n", n, factorial(n));
 

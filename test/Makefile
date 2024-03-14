@@ -1,6 +1,4 @@
 CC=clang
-LDFLAGS=-L ../src/
-LDLIBS=-lrecordfunctionio.so
 
 .PHONY: all
 all: clean build_dir factorial
@@ -10,7 +8,7 @@ build_dir:
 	mkdir -p ../build/test
 
 factorial: factorial_opt.ll
-	$(CC) ../build/test/$^ -o ../build/test/$@
+	afl-clang-fast ../build/test/$^ -o ../build/test/$@
 
 factorial_opt.ll: factorial.ll
 	opt -load ../build/src/librecordfunctionio.so \
