@@ -1,27 +1,18 @@
-CC=clang
 CXX=clang++
 CXXFLAGS=$(shell llvm-config --cxxflags)
 LDFLAGS=$(shell llvm-config --ldflags)
 
 .PHONY: all
-all: clean factorial
+all: clean build_dir librecordfunctionio.so
 
-factorial: factorial_opt.ll
-	$(CC) $^ -o $@
 
-factorial_opt.ll: librecordfunctionio.so factorial.ll
-	opt -load ./librecordfunctionio.so \
-		-load-pass-plugin ./librecordfunctionio.so \
-		-passes="record-function-io" \
-		-record-output-file="records.txt" \
-		factorial.ll -S -o $@ \
+.PHONY: build_dir
+build_dir:
+	mkdir ../build/src -p
 
 librecordfunctionio.so: record_function_io.cpp
-	$(CXX) -shared -fPIC $(CXXFLAGS) $(LDFLAGS) $^ -o $@
-
-factorial.ll: factorial.c
-	$(CC) -O0 -S -emit-llvm $^ -o $@
+	$(CXX) -shared -fPIC $(CXXFLAGS) $(LDFLAGS) $^ -o ../build/src/$@
 
 .PHONY: clean
 clean:
-	rm -rf *.o librecordfunctionio.so factorial.ll factorial_opt.ll factorial records.txt
+	rm -rf ../build/src
