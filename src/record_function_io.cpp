@@ -1,3 +1,12 @@
+/* 
+ * record_function_io.cpp
+ *
+ * An LLVM function pass that instruments the code to print the input and
+ * outputs of a function's invocation at runtime.
+ *
+ * The records are printed to a file specified as a
+ * command line argument.
+ */
 #include "llvm/Pass.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Function.h"
@@ -66,7 +75,7 @@ namespace {
 
     }
 
-    struct PrintFunctionIOPass : PassInfoMixin<PrintFunctionIOPass> {
+    struct RecordFunctionIOPass : PassInfoMixin<RecordFunctionIOPass> {
         PreservedAnalyses run (Function& F, FunctionAnalysisManager&) {
             LLVMContext& context = F.getContext();
             Module *module = F.getParent();
@@ -100,14 +109,6 @@ namespace {
                     {Type::getInt8PtrTy(context)}, false);
             FunctionCallee fcloseFunction = module->getOrInsertFunction(
                     "fclose", fcloseType);
-
-            // Create the declaration for the printf function
-            FunctionType *printfType = FunctionType::get(
-                    Type::getInt32Ty(context),
-                    {Type::getInt8PtrTy(context)}, true);
-            FunctionCallee printfFunction = module->getOrInsertFunction(
-                    "printf", printfType);
-
 
             // Print the output by inserting a print statement before every
             // the return statement
@@ -187,14 +188,14 @@ namespace {
     };
 } // namespace
 
-PassPluginLibraryInfo getPrintFunctionIOPassPluginInfo() {
-  return {LLVM_PLUGIN_API_VERSION, "PrintFunctionIOPass", LLVM_VERSION_STRING,
+PassPluginLibraryInfo getRecordFunctionIOPassPluginInfo() {
+  return {LLVM_PLUGIN_API_VERSION, "RecordFunctionIOPass", LLVM_VERSION_STRING,
           [](PassBuilder &PB) {
             PB.registerPipelineParsingCallback(
                 [](StringRef Name, FunctionPassManager &FPM,
                    ArrayRef<PassBuilder::PipelineElement>) {
-                  if (Name == "print-function-io") {
-                    FPM.addPass(PrintFunctionIOPass());
+                  if (Name == "record-function-io") {
+                    FPM.addPass(RecordFunctionIOPass());
                     return true;
                   }
                   return false;
@@ -204,5 +205,5 @@ PassPluginLibraryInfo getPrintFunctionIOPassPluginInfo() {
 
 extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo
 llvmGetPassPluginInfo() {
-  return getPrintFunctionIOPassPluginInfo();
+  return getRecordFunctionIOPassPluginInfo();
 }

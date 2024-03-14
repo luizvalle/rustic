@@ -9,10 +9,10 @@ all: clean factorial
 factorial: factorial_opt.ll
 	$(CC) $^ -o $@
 
-factorial_opt.ll: libprintfunctionio.so factorial.ll
-	opt -load-pass-plugin ./libprintfunctionio.so -passes=print-function-io factorial.ll -S -o $@
+factorial_opt.ll: librecordfunctionio.so factorial.ll
+	opt -load-pass-plugin ./librecordfunctionio.so -passes=record-function-io factorial.ll -S -o $@
 
-libprintfunctionio.so: print_function_io_pass.cpp
+librecordfunctionio.so: record_function_io.cpp
 	$(CXX) -shared -fPIC $(CXXFLAGS) $(LDFLAGS) $^ -o $@
 
 factorial.ll: factorial.c
@@ -20,4 +20,4 @@ factorial.ll: factorial.c
 
 .PHONY: clean
 clean:
-	rm -rf *.o libprintfunctionio.so factorial.ll factorial_opt.ll factorial
+	rm -rf *.o librecordfunctionio.so factorial.ll factorial_opt.ll factorial
