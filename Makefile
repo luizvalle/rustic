@@ -15,4 +15,4 @@ fuzz: src test
 
 .PHONY: clean
 clean:
-	make clean -C src && make clean -C test && rm records.txt
+	make clean -C src && make clean -C test && rm -f records.txt
