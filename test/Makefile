@@ -1,7 +1,7 @@
 CC=clang
 
 .PHONY: all
-all: clean build_dir factorial
+all: clean build_dir factorial factorial2
 
 .PHONY: build_dir
 build_dir:
@@ -9,6 +9,9 @@ build_dir:
 
 factorial: factorial_opt.ll
 	afl-clang-fast ../build/test/$^ -o ../build/test/$@
+
+factorial2: factorial.c
+	clang -fpass-plugin=../build/src/libcollectfunctiontypes.so $^ -o ../build/test/$@
 
 factorial_opt.ll: factorial.ll
 	opt -load ../build/src/librecordfunctionio.so \

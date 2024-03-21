@@ -3,7 +3,7 @@ CXXFLAGS=$(shell llvm-config --cxxflags)
 LDFLAGS=$(shell llvm-config --ldflags)
 
 .PHONY: all
-all: clean build_dir librecordfunctionio.so libcollectionfunctiontypestats.so
+all: clean build_dir librecordfunctionio.so libcollectfunctiontypes.so
 
 .PHONY: build_dir
 build_dir:
@@ -12,7 +12,7 @@ build_dir:
 librecordfunctionio.so: record_function_io.cpp
 	$(CXX) -shared -fPIC $(CXXFLAGS) $(LDFLAGS) $^ -o ../build/src/$@
 
-libcollectionfunctiontypestats.so: collect_function_type_stats.cpp
+libcollectfunctiontypes.so: collect_function_types.cpp
 	$(CXX) -shared -fPIC $(CXXFLAGS) $(LDFLAGS) $^ -o ../build/src/$@
 
 .PHONY: clean
