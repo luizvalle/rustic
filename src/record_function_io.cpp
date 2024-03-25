@@ -26,7 +26,7 @@ namespace {
     static cl::opt<string> outputFile(
             "record-output-file",
             cl::desc("Path to the file where records will be written to"),
-            cl::Required);
+            cl::init("record_function_io_out.txt"));
 
     void printName(
             const Function& F, IRBuilder<>& builder,
@@ -83,7 +83,7 @@ namespace {
 
     }
 
-    struct RecordFunctionIOPass : PassInfoMixin<RecordFunctionIOPass> {
+    struct RecordFunctionIO : PassInfoMixin<RecordFunctionIO> {
         PreservedAnalyses run (Function& F, FunctionAnalysisManager&) {
             LLVMContext& context = F.getContext();
             Module *module = F.getParent();
@@ -196,22 +196,23 @@ namespace {
     };
 } // namespace
 
-PassPluginLibraryInfo getRecordFunctionIOPassPluginInfo() {
-  return {LLVM_PLUGIN_API_VERSION, "RecordFunctionIOPass", LLVM_VERSION_STRING,
-          [](PassBuilder &PB) {
-            PB.registerPipelineParsingCallback(
-                [](StringRef Name, FunctionPassManager &FPM,
-                   ArrayRef<PassBuilder::PipelineElement>) {
-                  if (Name == "record-function-io") {
-                    FPM.addPass(RecordFunctionIOPass());
+PassPluginLibraryInfo getRecordFunctionIOPluginInfo() {
+    const auto callback = [](PassBuilder& PB) {
+        PB.registerPipelineEarlySimplificationEPCallback(
+                [&](ModulePassManager& MPM, auto) {
+                    MPM.addPass(createModuleToFunctionPassAdaptor(RecordFunctionIO()));
                     return true;
-                  }
-                  return false;
                 });
-		  }};
+    };
+    return {
+            LLVM_PLUGIN_API_VERSION,
+            "RecordFunctionIO",
+            LLVM_VERSION_STRING,
+            callback
+    };
 }
 
 extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo
 llvmGetPassPluginInfo() {
-  return getRecordFunctionIOPassPluginInfo();
+  return getRecordFunctionIOPluginInfo();
 }
