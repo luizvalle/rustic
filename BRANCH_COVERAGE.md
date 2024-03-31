@@ -29,6 +29,6 @@ cd coreutils
 ## 2: Modify the Makefile to include coverage information at compilation
 
 ```sh
-sed -i 's/CFLAGS = .*/CFLAGS = -g -O0 --coverage -fprofile-abs-path -Wno-uninitialized -fkeep-inline-functions -fkeep-static-functions/' Makefile
-sed -i 's/LDFLAGS = .*/LDFLAGS = --coverage/' Makefile
+sed -i 's/^CFLAGS = .*$/CFLAGS = -g -O0 --coverage -fprofile-abs-path -Wno-uninitialized -fkeep-inline-functions -fkeep-static-functions/' Makefile
+sed -i 's/^LDFLAGS = .*$/LDFLAGS = --coverage/' Makefile
 ```
