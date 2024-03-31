@@ -74,34 +74,19 @@ See the [documentation](https://gcc.gnu.org/onlinedocs/gcc/gcov/brief-descriptio
 
 To extract the data as a JSON format
 ([format description](https://gcc.gnu.org/onlinedocs/gcc/gcov/invoking-gcov.html#cmdoption-gcov-j)),
-run the following command:
+run the following command (replacing `<directort>` with the directory to place
+the JSON files in):
 
 ```sh
 find src/ -executable -type f | while IFS= read -r file; do
-    gcov $file --json-format
+    gcov "$file" --json-format
     json_file_name="$(basename $file).gcov.json"
-    gzip -d $json_file_name.gz
-    mv $json_file_name <directory>
+    gzip -d "$json_file_name.gz"
+    mv "$json_file_name" <directory>
 done
 ```
 
-```sh
-gcov src/<executable_name> --json-format
-```
-
 ## Appendix
-
-### End-to-end script
-
-```sh
-git clone git@github.com:coreutils/coreutils.git
-cd coreutils
-./bootstrap
-./configure --quiet
-sed -i 's/^CFLAGS = .*$/CFLAGS = -g -O0 --coverage -fprofile-abs-path -Wno-uninitialized -fkeep-inline-functions -fkeep-static-functions/' Makefile
-sed -i 's/^LDFLAGS = .*$/LDFLAGS = --coverage/' Makefile
-make check tests
-```
 
 ### Clean the coreutils directory
 
