@@ -84,7 +84,7 @@ find src/ -executable -type f | while IFS= read -r file; do
     json_file_name="$(basename $file).gcov.json"
     gzip -d "$json_file_name.gz"
     mkdir -p $DIR
-    mv "$json_file_name" <directory>
+    mv "$json_file_name" $DIR
 done
 ```
 
