@@ -74,14 +74,16 @@ See the [documentation](https://gcc.gnu.org/onlinedocs/gcc/gcov/brief-descriptio
 
 To extract the data as a JSON format
 ([format description](https://gcc.gnu.org/onlinedocs/gcc/gcov/invoking-gcov.html#cmdoption-gcov-j)),
-run the following command (replacing `<directort>` with the directory to place
+run the following command (replacing `<directory>` with the directory to place
 the JSON files in):
 
 ```sh
+DIR=<directory>
 find src/ -executable -type f | while IFS= read -r file; do
     gcov "$file" --json-format
     json_file_name="$(basename $file).gcov.json"
     gzip -d "$json_file_name.gz"
+    mkdir -p $DIR
     mv "$json_file_name" <directory>
 done
 ```
