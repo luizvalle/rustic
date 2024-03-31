@@ -87,14 +87,3 @@ find src/ -executable -type f | while IFS= read -r file; do
     mv "$json_file_name" $DIR
 done
 ```
-
-## Appendix
-
-### Clean the coreutils directory
-
-From the coreutils repository root, run the following commands
-
-```sh
-make clean
-rm src/*.gcda src/*.gcno
-```
