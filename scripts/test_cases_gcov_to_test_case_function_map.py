@@ -36,17 +36,16 @@ def main():
                     basic_block_coverage = (
                         function["blocks_executed"] / function["blocks"]
                         if function["blocks"]
-                        else 0
+                        else 0.0
                     )
                     if basic_block_coverage == 0:
                         continue  # Skip empty or unexecuted functions
                     info = {
                         "executable_name": json_contents["data_file"],
+                        "test_script": test_script_path,
                         "source_file": source_file["file"],
                         "function_name": function["name"],
-                        "basic_block_coverage": (
-                            function["blocks_executed"] / function["blocks"]),
-                        "test_script": test_script_path
+                        "basic_block_coverage": basic_block_coverage,
                     }
                     collected_info.append(info)
 
