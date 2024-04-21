@@ -33,6 +33,8 @@ def main():
                 json_contents = json.load(json_file)
             for source_file in json_contents["files"]:
                 for function in source_file["functions"]:
+                    if not function["blocks_executed"]:
+                        continue  # Skip unexecuted functions
                     info = {
                         "executable_name": json_contents["data_file"],
                         "source_file": source_file["file"],
