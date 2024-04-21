@@ -12,15 +12,14 @@ Run the following bash script from the coreutils root directory:
 ```sh
 DIR=<directory>
 find tests/ -type f -name "*.sh" | while IFS= read -r test_script; do
-    rm src/*.gcda src/*.json # Remove existing coverage information
+    rm -f src/*.gcda ./*.gcov.json.gz # Remove existing coverage information
     make check TESTS=$test_script # Execute the test script
-    find src/ -executable -type f | while IFS= read -r executable; do
-        gcov "$executable" --json-format
-    done
+    executable=$(basename "$(dirname "$test_script")") # Get the directory name of the sh script
+    gcov "src/$executable" --json-format # Get the coverage information for the executable
     subdirname="${test_script//\//_}"  # Replace slashes with underscores
     subdirname="${subdirname%.sh}"  # Remove ".sh" extension
     mkdir -p $DIR/$subdirname # Create a directory to save the gcov files
-    mv src/*.gcda $DIR/$subdirname
-    mv src/*.gcov.json $DIR/$subdirname
+    mv ./*.gcov.json.gz $DIR/$subdirname # Move the gcov data to the directory
+    gzip -d $DIR/$subdirname/*.gz
 done
 ```
