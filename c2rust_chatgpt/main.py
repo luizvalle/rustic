@@ -53,7 +53,6 @@ Here are the places where this function gets called:
 Convert the function to idiomatic Rust, meaning Rust code that does not make
 use of features like unsafe, raw pointers, and the C API whenever possible.
 Provide separate translations of the function, as well as all of its call sites.
-Strive to make the code as concise and readable as possible.
 
 Follow the following format for your output: Place the function translation
 between the tags <FUNC> and </FUNC>. Place each callsite translation (in the
