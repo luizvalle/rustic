@@ -70,7 +70,7 @@ pip install -r requirements.txt
 The notebooks used to analyze the data can be found in the
 [notebooks/](notebooks) directory.
 
-* [FunctionTypeAnalaysis.ipynb](notebooks/FunctionTypeAnalaysis.ipynb): Contains
+* [FunctionTypeAnalysis.ipynb](notebooks/FunctionTypeAnalysis.ipynb): Contains
 the analysis for the types of functions available in
 [coreutils](https://github.com/coreutils/coreutils).
 * [CoverageAnalysis.ipynb](notebooks/CoverageAnalysis.ipynb): Contains the

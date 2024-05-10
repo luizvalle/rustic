@@ -1,6 +1,6 @@
 """
 Usage example:
-python main.py \
+python refactor.py \
 --openai-api-key=abdef-1234 \
 --input-function-filepath=~/Desktop/function_src.txt \
 --imports-filepath=~/Desktop/imports_src.txt \
